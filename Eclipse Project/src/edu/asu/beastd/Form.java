@@ -154,8 +154,8 @@ public class Form {
 		return str;
 	}
 	
-	public JSONObject JsonParsing() throws FileNotFoundException {
-		InputStream is = new FileInputStream("SampleDB.txt");
+	public JSONObject JsonParsing(String filepath) throws FileNotFoundException {
+		InputStream is = new FileInputStream(filepath);
 		Scanner scan = new Scanner(is).useDelimiter("\\A");
 		String jsonString = scan.hasNext() ? scan.next() : "";
 		scan.close();
