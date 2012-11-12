@@ -2,6 +2,8 @@ package edu.asu.beastd;
 
 import java.io.*;
 import java.util.*;
+import org.json.simple.*;
+import org.json.simple.parser.JSONParser;
 
 public class Form {
 	String _id, _rev, type, lastUpdateTime, dateOfService, name, inkStrokes, patientId, visitorId, templateId, signerUserId;
@@ -150,5 +152,22 @@ public class Form {
 		str += "inkStrokes: " + inkStrokes;
 		
 		return str;
+	}
+	
+	public JSONObject JsonParsing() throws FileNotFoundException {
+		InputStream is = new FileInputStream("SampleDB.txt");
+		Scanner scan = new Scanner(is).useDelimiter("\\A");
+		String jsonString = scan.hasNext() ? scan.next() : "";
+		scan.close();
+		
+		JSONParser parser = new JSONParser();
+		Object obj = new Object();
+		try {
+			obj = parser.parse(jsonString);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return (JSONObject) obj;
 	}
 }
