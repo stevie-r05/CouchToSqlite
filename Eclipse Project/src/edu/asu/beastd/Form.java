@@ -1,3 +1,5 @@
+package edu.asu.beastd;
+
 import java.io.*;
 import java.util.*;
 
@@ -127,6 +129,7 @@ public class Form {
 					current = input.next();
 				}
 			}
+			input.close();
 		}
 		catch(IOException e){
 			e.printStackTrace();
