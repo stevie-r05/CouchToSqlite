@@ -5,7 +5,15 @@ import java.util.*;
 import org.json.simple.*;
 import org.json.simple.parser.JSONParser;
 
+/**
+ * Form class deals with JSON creation/initialization.
+ * @author BEASTD
+ */
 public class Form {
+	
+	/** 
+	LEGACY (RIP)
+
 	String _id, _rev, type, lastUpdateTime, dateOfService, name, inkStrokes, patientId, visitorId, templateId, signerUserId;
 	Boolean isSigned;
 	int dateSigned;
@@ -153,7 +161,15 @@ public class Form {
 		
 		return str;
 	}
+	**/
 	
+	/**
+	 * Creates a JSONObject from a file.
+	 * @param filepath Location of file.
+	 * @author BEASTD
+	 * @return JSONObject of file
+	 * @throws FileNotFoundException
+	 */
 	public JSONObject JsonParsing(String filepath) throws FileNotFoundException {
 		InputStream is = new FileInputStream(filepath);
 		Scanner scan = new Scanner(is).useDelimiter("\\A");
