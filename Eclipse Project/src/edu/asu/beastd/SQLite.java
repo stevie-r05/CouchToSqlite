@@ -37,6 +37,7 @@ public class SQLite {
 	 * @param queryStatement The SQL statement to be executed.
 	 * @author BEASTD
 	 */
+	// TODO: Maybe throw SQLException from here so it can be handled elsewhere?
 	public void executeSql(String queryStatement){
 		try {
 			statement = connection.createStatement();
