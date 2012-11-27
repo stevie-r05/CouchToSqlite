@@ -56,6 +56,14 @@ public class Parse {
 			Set<String> docFields = doc.keySet();
 			Iterator<String> fieldIt = docFields.iterator();
 			
+			//Drops the table if it exists. Ignores otherwise.
+			try{
+				sqlite.executeSql("DROP TABLE "+db.getName());
+			}
+			catch(SQLException e){
+				//do nothing
+			}
+			
 			// Creates the table for the particular database. Initializes all columns to the structure of the
 			// first document.
 			// TODO: Somebody add in type checking, so we don't only add in strings.
