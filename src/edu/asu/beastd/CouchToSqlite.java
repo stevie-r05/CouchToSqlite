@@ -5,11 +5,77 @@ import java.io.*;
 import java.util.*;
 
 /**
- * This is where everything is actually put together.
+ * The CouchToSqlite class can take in a SQLite file location and/or CouchDB database location in 
+ * its constructor and successfully convert CouchDB into relational SQLite databases.<br><br>
+ * If no CouchDB instance is specified in the constructor, the class defaults to localhost:5984, and if no output file is
+ * specified, it defaults to "TestDB.db" as a location.
  * @author BEASTD
- *
  */
-public class Parse {
+public class CouchToSqlite {
+	
+	private String dbPath;
+	private String couchHost;
+	private int couchPort;
+	private SQLite sqlite;
+	private Session couchSession;
+	
+	/**
+	 * Constructor for default SQLite location ("TestDB.db") and default CouchDB location (localhost:5984).
+	 * @throws CouchException If there is an error accessing the CouchDB instance
+	 * @throws SqliteException If there is an error accessing the SQLite .db location
+	 * @author BEASTD
+	 */
+	public CouchToSqlite() throws CouchException, SqliteException {
+		this("TestDB.db", "localhost", 5984);
+	}
+	
+	/**
+	 * Constructor for a specific SQLite .db file output location and default CouchDB location (localhost:5984).
+	 * @param dbFileOutput Output location of the .db SQLite file generated.
+	 * @throws CouchException If there is an error accessing the CouchDB instance
+	 * @throws SqliteException If there is an error accessing the SQLite .db location
+	 * @author BEASTD
+	 */
+	public CouchToSqlite(String dbPath) throws CouchException, SqliteException {
+		this(dbPath, "localhost", 5984);
+	}
+	
+	/**
+	 * Constructor for default SQLite location ("TestDB.db") and a specific CouchDB location.
+	 * @param couchHost The host location of the CouchDB instance
+	 * @param couchPort The port to access CouchDB on (typically the default 5984)
+	 * @throws CouchException If there is an error accessing the CouchDB instance
+	 * @throws SqliteException If there is an error accessing the SQLite .db location
+	 * @author BEASTD
+	 */
+	public CouchToSqlite(String couchHost, int couchPort) throws CouchException, SqliteException {
+		this("TestDB.db", couchHost, couchPort);
+	}
+	
+	/**
+	 * Constructor for a specific SQLite .db file output location and specific CouchDB location.
+	 * @param dbPath Output location of the .db SQLite file generated
+	 * @param couchHost The host location of the CouchDB instance
+	 * @param couchPort The port to access CouchDB on (typically the default 5984)
+	 * @throws CouchException If there is an error accessing the CouchDB instance
+	 * @throws SqliteException If there is an error accessing the SQLite .db location
+	 * @author BEASTD
+	 */
+	public CouchToSqlite(String dbPath, String couchHost, int couchPort) throws CouchException, SqliteException {
+		this.dbPath = dbPath;
+		this.couchHost = couchHost;
+		this.couchPort = couchPort;
+		try {
+			this.sqlite = new SQLite(dbPath);
+		} catch (Exception e){
+			throw new SqliteException("Couldn't connect to file location: " + e.getMessage(), e.getCause());
+		}
+		try {
+			this.couchSession = new Session(couchHost, couchPort);
+		} catch (Exception e) {
+			throw new CouchException("Couldn't connect to Couch instance: " + e.getMessage(), e.getCause());
+		}
+	}
 	
 	@SuppressWarnings("unchecked")
 	public static void main (String[] args) throws IOException{
@@ -113,4 +179,5 @@ public class Parse {
 			
 		} //end db for loop
 	} //end main
+
 }

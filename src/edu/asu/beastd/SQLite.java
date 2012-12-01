@@ -2,7 +2,6 @@ package edu.asu.beastd;
 
 import java.sql.Connection;  
 import java.sql.DriverManager;  
-import java.sql.ResultSet;  
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -12,23 +11,23 @@ import java.sql.Statement;
  * @author BEASTD
  */
 public class SQLite {
-	Connection connection;  
-    ResultSet resultSet;  
-    Statement statement;  
+	
+	private Connection connection;  
+    private Statement statement;  
 
     /**
      * Initializes connection.
      * @param database The location of the database to be edited. Created if it doesn't exist.
      * @author BEASTD
+     * @throws SqliteException If there is an error connecting to the file location
      */
-	public SQLite(String database){
-		resultSet = null;
+	public SQLite(String database) throws SqliteException {
 		statement = null;
         try{
         	Class.forName("org.sqlite.JDBC");
         	connection = DriverManager.getConnection("jdbc:sqlite:" + database);
         } catch (Exception e) {  
-            e.printStackTrace();  
+            throw new SqliteException("Couldn't connect to file location: " + e.getMessage(), e.getCause()); 
         }
 	}
 	
@@ -36,28 +35,28 @@ public class SQLite {
 	 * Executes any SQL statement.
 	 * @param queryStatement The SQL statement to be executed.
 	 * @author BEASTD
+	 * @throws SqliteException If there is an error executing the SQL code
 	 */
-	// TODO: Maybe throw SQLException from here so it can be handled elsewhere?
-	public void executeSql(String queryStatement){
+	public void executeSql(String queryStatement) throws SqliteException {
 		try {
 			statement = connection.createStatement();
 			statement.execute(queryStatement);
             statement.close(); 
 		} catch (SQLException e) {
-			// add log?
-			e.printStackTrace();
+			throw new SqliteException("Problem executing SQL code: " + e.getMessage() , e.getCause());
 		}  
 	}
 	
 	/**
 	 * Closes DB connection.
 	 * @author BEASTD
+	 * @throws SqliteException If there is a problem closing the DB connection
 	 */
-	public void closeDatabase(){
+	public void closeDatabase() throws SqliteException {
 		 try {
 			connection.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new SqliteException("Problem closing SQLite database: " + e.getMessage(), e.getCause());
 		}
 	}
 }
