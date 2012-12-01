@@ -8,7 +8,7 @@ import java.sql.Statement;
 /**
  * SQLite is the class used for bridging to a SQLite file.
  * It provides the commands for actually executing SQL statements.
- * @author BEASTD
+ * @author Team BEASTD
  */
 public class SQLite {
 	
@@ -18,8 +18,8 @@ public class SQLite {
     /**
      * Initializes connection.
      * @param database The location of the database to be edited. Created if it doesn't exist.
-     * @author BEASTD
      * @throws SqliteException If there is an error connecting to the file location
+     * @author Team BEASTD
      */
 	public SQLite(String database) throws SqliteException {
 		statement = null;
@@ -34,8 +34,8 @@ public class SQLite {
 	/**
 	 * Executes any SQL statement.
 	 * @param queryStatement The SQL statement to be executed.
-	 * @author BEASTD
 	 * @throws SqliteException If there is an error executing the SQL code
+	 * @author Team BEASTD
 	 */
 	public void executeSql(String queryStatement) throws SqliteException {
 		try {
@@ -49,8 +49,8 @@ public class SQLite {
 	
 	/**
 	 * Closes DB connection.
-	 * @author BEASTD
 	 * @throws SqliteException If there is a problem closing the DB connection
+	 * @author Team BEASTD
 	 */
 	public void closeDatabase() throws SqliteException {
 		 try {
