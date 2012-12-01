@@ -1,4 +1,4 @@
-Team BEASTD: CouchDB to SQLite Conversion
+Team BEASTD: CouchDB to SQLite Conversion Library
 ---------------------
 Team BEASTD is:
 Blake Tucker - macbert
@@ -12,7 +12,7 @@ Primary Libraries utilized:
 CouchDB4J: https://github.com/mbreese/couchdb4j
 json-lib: http://json-lib.sourceforge.net/index.html
 
-This Java program takes in a CouchDB instance (defaulted to http://localhost:5984/), asks the user for an output .db file, and converts the CouchDB databases and documents into SQLite. The first document in each database is read in and used to set up the column structure of each database table in SQLite. In short:
+This Java library converts a set of CouchDB databases and documents into a SQLite .db file with tables. The first document in each database is read in and used to set up the column structure of each database table in SQLite. In short:
 
 CouchDB database -> SQLite table
 CouchDB document -> SQLite row entry in its corresponding database's table
