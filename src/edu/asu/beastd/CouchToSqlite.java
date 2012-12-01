@@ -23,7 +23,6 @@ public class CouchToSqlite {
 	 * Constructor for default SQLite location ("TestDB.db") and default CouchDB location (localhost:5984).
 	 * @throws CouchException If there is an error accessing the CouchDB instance
 	 * @throws SqliteException If there is an error accessing the SQLite .db location
-	 * @author Team BEASTD
 	 */
 	public CouchToSqlite() throws CouchException, SqliteException {
 		this("TestDB.db", "localhost", 5984);
@@ -31,10 +30,9 @@ public class CouchToSqlite {
 	
 	/**
 	 * Constructor for a specific SQLite .db file output location and default CouchDB location (localhost:5984).
-	 * @param dbFileOutput Output location of the .db SQLite file generated.
+	 * @param dbPath Output location of the .db SQLite file generated.
 	 * @throws CouchException If there is an error accessing the CouchDB instance
 	 * @throws SqliteException If there is an error accessing the SQLite .db location
-	 * @author Team BEASTD
 	 */
 	public CouchToSqlite(String dbPath) throws CouchException, SqliteException {
 		this(dbPath, "localhost", 5984);
@@ -45,7 +43,6 @@ public class CouchToSqlite {
 	 * @param couchPort The port to access CouchDB on (typically the default 5984)
 	 * @throws CouchException If there is an error accessing the CouchDB instance
 	 * @throws SqliteException If there is an error accessing the SQLite .db location
-	 * @author Team BEASTD
 	 */
 	public CouchToSqlite(String couchHost, int couchPort) throws CouchException, SqliteException {
 		this("TestDB.db", couchHost, couchPort);
@@ -58,7 +55,6 @@ public class CouchToSqlite {
 	 * @param couchPort The port to access CouchDB on (typically the default 5984)
 	 * @throws CouchException If there is an error accessing the CouchDB instance
 	 * @throws SqliteException If there is an error accessing the SQLite .db location
-	 * @author Team BEASTD
 	 */
 	public CouchToSqlite(String dbPath, String couchHost, int couchPort) throws CouchException, SqliteException {
 		this.dbPath = dbPath;
@@ -81,7 +77,7 @@ public class CouchToSqlite {
 	 * @throws CouchException If there is any error involving CouchDB
 	 * @throws SqliteException If there is any error involving SQLite
 	 */
-	public void translateToSqlite() throws CouchException, SqliteException, IOException {
+	public void translateToSqlite() throws CouchException, SqliteException {
 		
 		List<String> databaseList = null;
 		try
@@ -109,7 +105,12 @@ public class CouchToSqlite {
 				
 				// Get first document to initialize the table structure. docFields holds the column values.
 				// fieldIt allows us to iterate through each field in order.
-				Document doc = db.getDocument(docList.getResults().get(0).getId());
+				Document doc;
+				try {
+					doc = db.getDocument(docList.getResults().get(0).getId());
+				} catch (IOException e) {
+					throw new CouchException("Problem accessing CouchDB document.", e.getCause());
+				}
 				Set<String> docFields = doc.keySet();
 				Iterator<String> fieldIt = docFields.iterator();
 				
@@ -149,7 +150,11 @@ public class CouchToSqlite {
 				// TODO: Merge in with table creation to avoid redundant code
 				for(int j=1;j<docList.getResults().size();j++)
 				{
-					doc = db.getDocument(docList.getResults().get(j).getId());
+					try {
+						doc = db.getDocument(docList.getResults().get(j).getId());
+					} catch (IOException e) {
+						throw new CouchException("Problem accessing CouchDB document.", e.getCause());
+					}
 					docFields = doc.keySet();
 					fieldIt = docFields.iterator();
 					keySetString = "";
