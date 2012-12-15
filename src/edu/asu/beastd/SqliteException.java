@@ -33,9 +33,4 @@ public class SqliteException extends RuntimeException {
 		super(message, cause);
 	}
 
-	public SqliteException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
 }

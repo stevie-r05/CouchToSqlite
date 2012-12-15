@@ -18,8 +18,11 @@
 package edu.asu.beastd;
 
 import com.fourspaces.couchdb.*;
+import com.sun.istack.internal.logging.Logger;
+
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * The CouchToSqlite class can take in a SQLite file location and/or CouchDB database location in 
@@ -29,6 +32,8 @@ import java.util.*;
  * @author Team BEASTD
  */
 public class CouchToSqlite {
+	
+	private static Logger LOG = Logger.getLogger(CouchToSqlite.class);
 	
 	private String dbPath;
 	private String couchHost;
@@ -80,11 +85,13 @@ public class CouchToSqlite {
 		try {
 			this.sqlite = new SQLite(dbPath);
 		} catch (Exception e){
+			LOG.logException(e, Level.WARNING);
 			throw new SqliteException("Couldn't connect to file location: " + e.getMessage(), e.getCause());
 		}
 		try {
 			this.couchSession = new Session(couchHost, couchPort);
 		} catch (Exception e) {
+			LOG.logException(e, Level.WARNING);
 			throw new CouchException("Couldn't connect to Couch instance: " + e.getMessage(), e.getCause());
 		}
 	}
@@ -101,6 +108,7 @@ public class CouchToSqlite {
 		{
 			databaseList = couchSession.getDatabaseNames();
 		} catch (Exception e) {
+			LOG.logException(e, Level.WARNING);
 			throw new CouchException("Problem getting database names from Couch.", e.getCause());
 		}
 		
@@ -132,8 +140,13 @@ public class CouchToSqlite {
 				Iterator<String> fieldIt = docFields.iterator();
 				
 				// Drops the table if it exists. Ignores otherwise.
-				sqlite.executeSql("DROP TABLE " + db.getName());
-
+				try{
+					sqlite.executeSql("DROP TABLE " + db.getName());
+				}
+				catch (Exception e) {
+					LOG.info("Skipped dropping table " + db.getName(), e);
+				}
+				
 				// Creates the table for the particular database. Initializes all columns to the structure of the
 				// first document.
 				// TODO: Somebody add in type checking, so we don't only add in strings.
@@ -170,6 +183,7 @@ public class CouchToSqlite {
 					try {
 						doc = db.getDocument(docList.getResults().get(j).getId());
 					} catch (IOException e) {
+						LOG.logException(e, Level.WARNING);
 						throw new CouchException("Problem accessing CouchDB document.", e.getCause());
 					}
 					docFields = doc.keySet();
