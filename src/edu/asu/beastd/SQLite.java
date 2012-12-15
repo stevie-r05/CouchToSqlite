@@ -19,8 +19,13 @@ package edu.asu.beastd;
 
 import java.sql.Connection;  
 import java.sql.DriverManager;  
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+
+import com.sun.istack.internal.logging.Logger;
 
 /**
  * SQLite is the class used for bridging to a SQLite file.
@@ -29,8 +34,11 @@ import java.sql.Statement;
  */
 public class SQLite {
 	
+	public static final Logger LOG = Logger.getLogger(SQLite.class);
+	
 	private Connection connection;  
     private Statement statement;  
+    private String databaseLocation;
 
     /**
      * Initializes connection.
@@ -40,11 +48,64 @@ public class SQLite {
 	public SQLite(String database) throws SqliteException {
 		statement = null;
         try{
+        	databaseLocation = "jdbc:sqlite:" + database;
         	Class.forName("org.sqlite.JDBC");
-        	connection = DriverManager.getConnection("jdbc:sqlite:" + database);
-        } catch (Exception e) {  
+        	connection = DriverManager.getConnection(databaseLocation);
+        } catch (Exception e) { 
+        	LOG.logException(e, Level.WARNING);
             throw new SqliteException("Couldn't connect to file location: " + e.getMessage(), e.getCause()); 
+        } finally {
+        	try {
+				connection.close();
+			} catch (SQLException ex) { 
+				LOG.logSevereException(ex); // Should theoretically never be reached
+			}
         }
+	}
+	
+	/**
+	 * Used to check if a column already exists in a given table.
+	 * @param columnName The column name to check for
+	 * @param tableName The table to be checked against
+	 * @return <code>true</code> if the column exists, <code>false</code> if it doesn't.
+	 * @throws SqliteException If there is an error executing the query.
+	 */
+	public boolean hasColumn(String columnName, String tableName) throws SqliteException {
+		try {
+			connection = DriverManager.getConnection(databaseLocation);
+			try { 
+				statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery("SELECT * FROM " + tableName);
+				ResultSetMetaData metadata = resultSet.getMetaData();
+				
+				//NOTE: JDBC indexing starts at 1.
+				for(int i=1;i<=metadata.getColumnCount();i++)
+				{
+					if (columnName.equals(metadata.getColumnLabel(i)))
+						return true;
+				}
+				return false;
+			} catch (SQLException e) {
+				LOG.logException(e, Level.WARNING);
+				throw new SqliteException("Problem searching columns: " + e.getMessage(), e.getCause());
+			} finally {
+				try {
+					statement.close();
+				} catch (SQLException ex) {
+					LOG.logSevereException(ex); // Theoretically should never happen
+				}
+			}
+		} catch (SQLException e) {
+			LOG.logException(e, Level.WARNING);
+			throw new SqliteException("Problem getting connection: " + e.getMessage(), e.getCause());
+		}
+		finally {
+			try {
+				connection.close();
+			} catch (SQLException ex) {
+				LOG.logSevereException(ex); // Theoretically should never happen
+			}
+		}
 	}
 	
 	/**
@@ -54,12 +115,30 @@ public class SQLite {
 	 */
 	public void executeSql(String queryStatement) throws SqliteException {
 		try {
-			statement = connection.createStatement();
-			statement.execute(queryStatement);
-            statement.close(); 
+			connection = DriverManager.getConnection(databaseLocation);
+			try { 
+				statement = connection.createStatement();
+				statement.execute(queryStatement); 
+			} catch (SQLException e) {
+				LOG.logException(e, Level.WARNING);
+				throw new SqliteException("Problem executing SQL code: " + queryStatement + ": " + e.getMessage() , e.getCause());
+			} finally {
+				try {
+					statement.close();
+				} catch (SQLException ex) {
+					LOG.logSevereException(ex); // Should theoretically never happen
+				}
+			}
 		} catch (SQLException e) {
-			throw new SqliteException("Problem executing SQL code: " + e.getMessage() , e.getCause());
-		}  
+			LOG.logException(e, Level.WARNING);
+			throw new SqliteException("Problem getting connection: " + e.getMessage(), e.getCause());
+		} finally {
+			try {
+				connection.close();
+			} catch (SQLException ex) {
+				LOG.logSevereException(ex); // Should theoretically never happen
+			}
+		}
 	}
 	
 	/**
@@ -70,6 +149,7 @@ public class SQLite {
 		 try {
 			connection.close();
 		} catch (SQLException e) {
+			LOG.logException(e, Level.WARNING);
 			throw new SqliteException("Problem closing SQLite database: " + e.getMessage(), e.getCause());
 		}
 	}

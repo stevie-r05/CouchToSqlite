@@ -21,6 +21,7 @@ import com.fourspaces.couchdb.*;
 import com.sun.istack.internal.logging.Logger;
 
 import java.io.*;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -131,50 +132,52 @@ public class CouchToSqlite {
 				// Get first document to initialize the table structure. docFields holds the column values.
 				// fieldIt allows us to iterate through each field in order.
 				Document doc;
-				try {
-					doc = db.getDocument(docList.getResults().get(0).getId());
-				} catch (IOException e) {
-					throw new CouchException("Problem accessing CouchDB document.", e.getCause());
+				if (!(docList.getResults().isEmpty())) {
+					try {
+						doc = db.getDocument(docList.getResults().get(0).getId());
+					} catch (IOException e) {
+						throw new CouchException("Problem accessing CouchDB document.", e.getCause());
+					}
+					Set<String> docFields = doc.keySet();
+					Iterator<String> fieldIt = docFields.iterator();
+					
+					// Drops the table if it exists. Ignores otherwise.
+					try{
+						sqlite.executeSql("DROP TABLE " + db.getName());
+					}
+					catch (Exception e) {
+						LOG.info("Skipped dropping table " + db.getName(), e);
+					}
+					
+					// Creates the table for the particular database. Initializes all columns to the structure of the
+					// first document.
+					// TODO: Somebody add in type checking, so we don't only add in strings.
+					sqlite.executeSql("CREATE TABLE " + db.getName() + "(" + fieldIt.next() + " VARCHAR(100000000))");
+					while (fieldIt.hasNext())
+					{
+						sqlite.executeSql("ALTER TABLE " + db.getName() + " ADD COLUMN " + fieldIt.next() + " VARCHAR(100000000)");
+					}
+					
+					fieldIt = docFields.iterator(); // reset fieldIt for adding values into doc.
+					
+					// Build keySetString and valueSetString to inject into SQLite command.
+					// We do this by moving through the fields and adding values to the string
+					String keySetString = new String();
+					while(fieldIt.hasNext())
+					{
+						keySetString += fieldIt.next() + ",";
+					}
+					keySetString = keySetString.substring(0, keySetString.length()-1); //remove extra comma
+					fieldIt = docFields.iterator();
+					String valueSetString = new String();
+					while(fieldIt.hasNext())
+					{
+						// replaceAll is to add escape character for single quote
+						valueSetString += "'" + doc.getString(fieldIt.next()).replaceAll("'", "''") + "',";
+					}
+					valueSetString = valueSetString.substring(0, valueSetString.length()-1);
+					sqlite.executeSql("INSERT INTO " + db.getName() + "( " + keySetString + ") VALUES (" + valueSetString + ")");
 				}
-				Set<String> docFields = doc.keySet();
-				Iterator<String> fieldIt = docFields.iterator();
-				
-				// Drops the table if it exists. Ignores otherwise.
-				try{
-					sqlite.executeSql("DROP TABLE " + db.getName());
-				}
-				catch (Exception e) {
-					LOG.info("Skipped dropping table " + db.getName(), e);
-				}
-				
-				// Creates the table for the particular database. Initializes all columns to the structure of the
-				// first document.
-				// TODO: Somebody add in type checking, so we don't only add in strings.
-				sqlite.executeSql("CREATE TABLE " + db.getName() + "(" + fieldIt.next() + " VARCHAR(100000000))");
-				while (fieldIt.hasNext())
-				{
-					sqlite.executeSql("ALTER TABLE " + db.getName() + " ADD COLUMN " + fieldIt.next() + " VARCHAR(100000000)");
-				}
-				
-				fieldIt = docFields.iterator(); // reset fieldIt for adding values into doc.
-				
-				// Build keySetString and valueSetString to inject into SQLite command.
-				// We do this by moving through the fields and adding values to the string
-				String keySetString = new String();
-				while(fieldIt.hasNext())
-				{
-					keySetString += fieldIt.next() + ",";
-				}
-				keySetString = keySetString.substring(0, keySetString.length()-1); //remove extra comma
-				fieldIt = docFields.iterator();
-				String valueSetString = new String();
-				while(fieldIt.hasNext())
-				{
-					// replaceAll is to add escape character for single quote
-					valueSetString += "'" + doc.getString(fieldIt.next()).replaceAll("'", "''") + "',";
-				}
-				valueSetString = valueSetString.substring(0, valueSetString.length()-1);
-				sqlite.executeSql("INSERT INTO " + db.getName() + "( " + keySetString + ") VALUES (" + valueSetString + ")");
 				
 				// Now, move through each document in a particular DB to add more rows
 				// TODO: Merge in with table creation to avoid redundant code
@@ -186,19 +189,31 @@ public class CouchToSqlite {
 						LOG.logException(e, Level.WARNING);
 						throw new CouchException("Problem accessing CouchDB document.", e.getCause());
 					}
-					docFields = doc.keySet();
-					fieldIt = docFields.iterator();
-					keySetString = "";
+					Set<String> docFields = doc.keySet();
+					Iterator<String> fieldIt = docFields.iterator();
+					String keySetString = "";
 					while(fieldIt.hasNext())
 					{
 						keySetString += fieldIt.next() + ",";
 					}
 					keySetString = keySetString.substring(0, keySetString.length()-1);
 					fieldIt = docFields.iterator();
-					valueSetString = "";
+					String valueSetString = "";
 					while(fieldIt.hasNext())
 					{
-						valueSetString += "'" + doc.getString(fieldIt.next()).replaceAll("'", "''") + "',";
+						// Checks if a particular column already exists. If it doesn't, it is added to
+						// the appropriate table.
+						String columnName = fieldIt.next();
+						try {
+							if (!(sqlite.hasColumn(columnName, db.getName())))
+							{
+								sqlite.executeSql("ALTER TABLE " + db.getName() + " ADD COLUMN " + columnName + " VARCHAR(100000000)");
+							}
+						} catch (SqliteException e) {
+							LOG.logException(e, Level.WARNING);
+							throw new SqliteException("Error adding new column to a table: " + e.getMessage(), e.getCause());
+						}
+						valueSetString += "'" + doc.getString(columnName).replaceAll("'", "''") + "',";
 					}
 					valueSetString = valueSetString.substring(0, valueSetString.length()-1);
 					sqlite.executeSql("INSERT INTO " + db.getName() + "( " + keySetString + ") VALUES (" + valueSetString + ")");
