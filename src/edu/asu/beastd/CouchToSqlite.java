@@ -163,6 +163,8 @@ public class CouchToSqlite {
 		Iterator<String> fieldIt = docFields.iterator();
 		
 		// Drops the table if it exists. Ignores otherwise.
+		// NOTE: We may want to consider just dropping all tables at the beginning, once we have transactions in place. This would help to eliminate leftover
+		// and deleted CouchDB databases, which will with the library as is at the moment.
 		try{
 			sqlite.executeSql("DROP TABLE " + databaseName);
 		}
