@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Stevie Robinson, Eric Alford, Tara Mendoza, Blake Tucker, Anthony Sanchez, Davenn Mannix
+// Copyright (C) 2012-2013 Stevie Robinson, Eric Alford, Tara Mendoza, Blake Tucker, Anthony Sanchez, Davenn Mannix
 //
 // This file is part of CouchToSqlite.
 //
