@@ -1,4 +1,4 @@
-// Copyright (C) 2012 Stevie Robinson, Eric Alford, Tara Mendoza, Blake Tucker, Anthony Sanchez, Davenn Mannix
+// Copyright (C) 2012-2013 Stevie Robinson, Eric Alford, Tara Mendoza, Blake Tucker, Anthony Sanchez, Davenn Mannix
 //
 // This file is part of CouchToSqlite.
 //
@@ -17,6 +17,10 @@
 
 package edu.asu.beastd;
 
+/**
+ * This exception is thrown when there is any exception relating to SQLite interactions. 
+ * @author Team BEASTD
+ */
 public class SqliteException extends RuntimeException {
 
 	private static final long serialVersionUID = 8286785776245596050L;

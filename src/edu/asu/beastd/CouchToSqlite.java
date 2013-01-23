@@ -26,7 +26,7 @@ import java.util.logging.Level;
 
 /**
  * The CouchToSqlite class can take in a SQLite file location and/or CouchDB database location in 
- * its constructor and successfully convert CouchDB into relational SQLite databases.<br><br>
+ * its constructor and successfully convert CouchDB into relational SQLite databases.<br>
  * If no CouchDB instance is specified in the constructor, the class defaults to localhost:5984, and if no output file is
  * specified, it defaults to "TestDB.db" as a location.
  * @author Team BEASTD
